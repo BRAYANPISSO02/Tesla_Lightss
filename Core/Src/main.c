@@ -1,48 +1,15 @@
-/* USER CODE BEGIN Header */
-/**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2024 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
-/* USER CODE END Header */
-/* Includes ------------------------------------------------------------------*/
+
+
+//We include the main.h library which is where we can define all the pins of our Nucleus
 #include "main.h"
 
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
 
-/* USER CODE END Includes */
 
-/* Private typedef -----------------------------------------------------------*/
-/* USER CODE BEGIN PTD */
 
-/* USER CODE END PTD */
-
-/* Private define ------------------------------------------------------------*/
-/* USER CODE BEGIN PD */
-
-/* USER CODE END PD */
-
-/* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN PM */
-
-/* USER CODE END PM */
-
-/* Private variables ---------------------------------------------------------*/
+// We name a private variable as huart2
 UART_HandleTypeDef huart2;
 
-/* USER CODE BEGIN PV */
+// We define the global variables that we are going to use in our code
 uint32_t left_toggles = 0;
 uint32_t right_toggles = 0;
 uint32_t left_last_press_tick = 0;
@@ -53,18 +20,28 @@ uint32_t stop_last_press_tick = 0;
 uint32_t state = 0;
 uint32_t state2 = 0;
 uint32_t state3 = 0;
-/* USER CODE END PV */
 
-/* Private function prototypes -----------------------------------------------*/
+
+// We initialize the private variables
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
-/* USER CODE BEGIN PFP */
-void heartbeat(void);
-/* USER CODE END PFP */
 
-/* Private user code ---------------------------------------------------------*/
-/* USER CODE BEGIN 0 */
+void heartbeat(void);
+
+
+/*
+The function shown below helps us define how many times it has to alternate
+  each of the LEDs in the functions of right, left and stop. Likewise, every time you press
+  one of the buttons sends the indication that was pressed to the serial monitor.
+
+In this function the conditions for the input data are:
+-A 16-bit data.
+-Indicate the button that was pressed.
+
+There is NO way out.
+ */
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	if (GPIO_Pin == S1_Pin && HAL_GetTick() > (left_last_press_tick + 200)) {
@@ -117,6 +94,14 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			}
 }
 
+/*
+The function shown below is the Heartbeat that is requested in the requirements. It is used
+to keep a flashing LED while the system is in operation.
+
+It has NO input data.
+There is NO way out.
+ */
+
 void heartbeat(void)
 {
 	static uint32_t heartbeat_tick = 0;
@@ -125,6 +110,16 @@ void heartbeat(void)
 		HAL_GPIO_TogglePin(D1_GPIO_Port, D1_Pin);
 	}
 }
+
+/*
+ The function shown below helps us to execute the alternations shown below.
+  indicated at the time of the interruption. If it is a button interruption indicating
+  the left side will then execute the alternations as many times as necessary, if not this,
+  Turns off the left flashing LED.
+
+It does NOT have any type of entrance.
+There is NO way out.
+ */
 
 void turn_signal_left(void)
 {
@@ -142,6 +137,16 @@ void turn_signal_left(void)
 	}
 }
 
+/*
+The function shown below helps us to execute the alternations shown below.
+  indicated at the time of the interruption. If it is a button interruption indicating
+  The right side will then execute the alternations as many times as necessary, if it is not this one,
+  Turn off the right flashing LED.
+
+It does NOT have any type of entrance.
+There is NO way out.
+ */
+
 void turn_signal_right(void)
 {
 	static uint32_t turn_toggle_tick = 0;
@@ -157,6 +162,16 @@ void turn_signal_right(void)
 	}
 	}
 }
+
+/*
+The function shown below helps us to execute the alternations shown below.
+  indicated at the time of the interruption. If it is a button interruption indicating
+  The stop will then execute the alternations as many times as necessary, if it is not this one,
+  Turn off the stop flashing LED.
+
+It does NOT have any type of entrance.
+There is NO way out.
+ */
 
 void stationary(void)
 {
@@ -178,60 +193,37 @@ void stationary(void)
 
 
 
-/* USER CODE END 0 */
-
-/**
-  * @brief  The application entry point.
-  * @retval int
-  */
 int main(void)
 {
-  /* USER CODE BEGIN 1 */
 
-  /* USER CODE END 1 */
-
-  /* MCU Configuration--------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+//We execute each of the necessary functions
   HAL_Init();
 
-  /* USER CODE BEGIN Init */
 
-  /* USER CODE END Init */
-
-  /* Configure the system clock */
   SystemClock_Config();
 
-  /* USER CODE BEGIN SysInit */
 
-  /* USER CODE END SysInit */
-
-  /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
-  /* USER CODE BEGIN 2 */
 
-  /* USER CODE END 2 */
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
+/*
+ So that it is always executing the four functions created for the heartbeat, left side,
+  right side and the top, then we put it in a while loop so the validation is constant.
+ */
   while (1)
   {
 	  heartbeat();
 	  turn_signal_left();
 	  turn_signal_right();
 	  stationary();
-    /* USER CODE END WHILE */
 
-    /* USER CODE BEGIN 3 */
+
+
   }
-  /* USER CODE END 3 */
+
 }
 
-/**
-  * @brief System Clock Configuration
-  * @retval None
-  */
+
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
