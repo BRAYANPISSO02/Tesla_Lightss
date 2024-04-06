@@ -52,6 +52,7 @@ uint32_t stop_toggles = 0;
 uint32_t stop_last_press_tick = 0;
 uint32_t state = 0;
 uint32_t state2 = 0;
+uint32_t state3 = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -75,7 +76,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		HAL_GPIO_WritePin(D3_GPIO_Port, D3_Pin, 1);
 		HAL_GPIO_WritePin(D4_GPIO_Port, D4_Pin, 1);
 		HAL_UART_Transmit(&huart2, "S1\r\n", 4, 10);
-		if (HAL_GetTick() < (left_last_press_tick + 400)) {
+		if (HAL_GetTick() < (left_last_press_tick + 300)) {
 			// if last press was in the last 300ms
 			left_toggles = 0xFFFFFF; // a long time toggling (infinite)
 		} else {
@@ -92,7 +93,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		HAL_GPIO_WritePin(D3_GPIO_Port, D3_Pin, 1);
 		HAL_GPIO_WritePin(D4_GPIO_Port, D4_Pin, 1);
 		HAL_UART_Transmit(&huart2, "S2\r\n", 4, 10);
-		if (HAL_GetTick() < (right_last_press_tick + 400)) {
+		if (HAL_GetTick() < (right_last_press_tick + 300)) {
 			// if last press was in the last 300ms
 			right_toggles = 0xFFFFFF; // a long time toggling (infinite)
 		} else {
@@ -101,6 +102,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		right_last_press_tick = HAL_GetTick();
 
 	} else if (GPIO_Pin == S3_Pin) {
+		if(stop_toggles > 0){
+			state3 = 1;
+		}
 		right_toggles = 0;
 		left_toggles = 0;
 		HAL_GPIO_WritePin(D3_GPIO_Port, D3_Pin, 1);
@@ -155,7 +159,7 @@ void stationary(void)
 {
 	static uint32_t turn_toggle_tick = 0;
 	if (turn_toggle_tick < HAL_GetTick()){
-		if (stop_toggles > 0) {
+		if (stop_toggles > 0 && state3 != 1) {
 			turn_toggle_tick = HAL_GetTick() + 500;
 			HAL_GPIO_TogglePin(D3_GPIO_Port, D3_Pin);
 			HAL_GPIO_TogglePin(D4_GPIO_Port, D4_Pin);
@@ -163,6 +167,8 @@ void stationary(void)
 		}  else if (right_toggles <= 0 && left_toggles <= 0){
 			HAL_GPIO_WritePin(D3_GPIO_Port, D3_Pin, 1);
 			HAL_GPIO_WritePin(D4_GPIO_Port, D4_Pin, 1);
+			stop_toggles = 0;
+			state3 = 0;
 		}
 	}
 }
